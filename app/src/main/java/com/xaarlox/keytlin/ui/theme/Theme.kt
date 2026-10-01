@@ -8,6 +8,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val lightScheme = lightColorScheme(
@@ -86,6 +90,29 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
+@Immutable
+data class ExtendedColors(
+    val warningContainer: Color,
+    val onWarningContainer: Color
+)
+
+val LocalExtendedColors = staticCompositionLocalOf {
+    ExtendedColors(
+        warningContainer = Color.Unspecified,
+        onWarningContainer = Color.Unspecified
+    )
+}
+
+val lightExtendedColors = ExtendedColors(
+    warningContainer = warningContainerLight,
+    onWarningContainer = onWarningContainerLight
+)
+
+val darkExtendedColors = ExtendedColors(
+    warningContainer = warningContainerDark,
+    onWarningContainer = onWarningContainerDark
+)
+
 @Composable
 fun KeytlinTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -102,10 +129,14 @@ fun KeytlinTheme(
         else -> lightScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        shapes = AppShapes,
-        content = content
-    )
+    val extendedColors = if (darkTheme) darkExtendedColors else lightExtendedColors
+
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            shapes = AppShapes,
+            content = content
+        )
+    }
 }

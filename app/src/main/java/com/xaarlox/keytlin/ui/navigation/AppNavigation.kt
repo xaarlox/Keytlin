@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.xaarlox.keytlin.data.FakeVaultRepository
 import com.xaarlox.keytlin.data.VaultRepository
+import com.xaarlox.keytlin.ui.screens.CreateVaultScreen
 import com.xaarlox.keytlin.ui.screens.EnterSyncCodeScreen
 import com.xaarlox.keytlin.ui.screens.WelcomeChoiceScreen
 
@@ -33,7 +34,9 @@ fun AppNavigation() {
             ) {
                 composable("welcome") {
                     WelcomeChoiceScreen(
-                        onCreateVaultClick = { /* TODO */ },
+                        onCreateVaultClick = {
+                            navController.navigate("create_vault")
+                        },
                         onRestoreVaultClick = {
                             navController.navigate("enter_sync_code")
                         }
@@ -61,6 +64,33 @@ fun AppNavigation() {
                         onScanQrClick = { /* TODO */ },
                         onBackClick = {
                             navController.popBackStack()
+                        }
+                    )
+                }
+                composable("create_vault") {
+                    var masterPassword by remember { mutableStateOf("") }
+                    var confirmPassword by remember { mutableStateOf("") }
+
+                    var isPasswordError by remember { mutableStateOf(false) }
+
+                    CreateVaultScreen(
+                        masterPassword = masterPassword,
+                        onMasterPasswordChange = {
+                            masterPassword = it
+                            isPasswordError = false
+                        },
+                        confirmPassword = confirmPassword,
+                        onConfirmPasswordChange = {
+                            confirmPassword = it
+                            isPasswordError = false
+                        },
+                        isError = isPasswordError,
+                        onCreateClick = {
+                            if (masterPassword != confirmPassword || masterPassword.isEmpty()) {
+                                isPasswordError = true
+                            } else {
+                                // TODO
+                            }
                         }
                     )
                 }
