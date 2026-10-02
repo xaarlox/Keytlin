@@ -19,6 +19,7 @@ import com.xaarlox.keytlin.data.VaultRepository
 import com.xaarlox.keytlin.ui.screens.CreateVaultScreen
 import com.xaarlox.keytlin.ui.screens.EnterSyncCodeScreen
 import com.xaarlox.keytlin.ui.screens.VaultLockedScreen
+import com.xaarlox.keytlin.ui.screens.VaultScreen
 import com.xaarlox.keytlin.ui.screens.WelcomeChoiceScreen
 
 @Composable
@@ -95,7 +96,9 @@ fun AppNavigation() {
                             if (masterPassword != confirmPassword || masterPassword.isEmpty()) {
                                 isPasswordError = true
                             } else {
-                                // TODO
+                                navController.navigate("vault_main") {
+                                    popUpTo("welcome") { inclusive = true }
+                                }
                             }
                         }
                     )
@@ -113,10 +116,22 @@ fun AppNavigation() {
                         isError = isPasswordError,
                         onUnlockClick = {
                             if (password == "1503") {
-                                // TODO
+                                navController.navigate("vault_main") {
+                                    popUpTo("vault_locked") { inclusive = true }
+                                }
                             } else {
                                 isPasswordError = true
                             }
+                        }
+                    )
+                }
+                composable("vault_main") {
+                    VaultScreen(
+                        onItemClick = { itemId ->
+                            // TODO
+                        },
+                        onAddClick = {
+                            // TODO
                         }
                     )
                 }
