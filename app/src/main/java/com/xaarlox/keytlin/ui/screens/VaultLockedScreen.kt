@@ -12,28 +12,43 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.GppGood
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun WelcomeChoiceScreen(
-    onCreateVaultClick: () -> Unit,
-    onRestoreVaultClick: () -> Unit
+fun VaultLockedScreen(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    isError: Boolean,
+    onUnlockClick: () -> Unit
 ) {
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,12 +65,10 @@ fun WelcomeChoiceScreen(
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = Icons.Rounded.Key,
-                    contentDescription = "Security icon",
+                    imageVector = Icons.Rounded.GppGood,
+                    contentDescription = "Vault Secured",
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .size(60.dp)
-                        .rotate(45f)
+                    modifier = Modifier.size(60.dp)
                 )
             }
         }
@@ -63,7 +76,7 @@ fun WelcomeChoiceScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Welcome",
+            text = "Vault Locked",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -72,39 +85,57 @@ fun WelcomeChoiceScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Securing your passwords, credentials, and private notes with zero-knowledge encryption",
+            text = "Enter password to decrypt your data",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Master Password") },
+            singleLine = true,
+            isError = isError,
+            colors = OutlinedTextFieldDefaults.colors(
+                errorTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            supportingText = {
+                if (isError) {
+                    Text(
+                        text = "Incorrect password",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
+                        contentDescription = "Toggle password visibility"
+                    )
+                }
+            },
+            shape = MaterialTheme.shapes.large
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
         Button(
-            onClick = onCreateVaultClick,
+            onClick = onUnlockClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = MaterialTheme.shapes.extraLarge
         ) {
             Text(
-                text = "Create New Vault",
+                text = "Unlock",
                 style = MaterialTheme.typography.labelLarge
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        TextButton(
-            onClick = onRestoreVaultClick,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        ) {
-            Text(
-                text = "Already have a vault on another device? Restore with sync code",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
             )
         }
     }

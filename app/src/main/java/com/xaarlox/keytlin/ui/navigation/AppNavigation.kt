@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,7 @@ import com.xaarlox.keytlin.data.FakeVaultRepository
 import com.xaarlox.keytlin.data.VaultRepository
 import com.xaarlox.keytlin.ui.screens.CreateVaultScreen
 import com.xaarlox.keytlin.ui.screens.EnterSyncCodeScreen
+import com.xaarlox.keytlin.ui.screens.VaultLockedScreen
 import com.xaarlox.keytlin.ui.screens.WelcomeChoiceScreen
 
 @Composable
@@ -43,8 +45,8 @@ fun AppNavigation() {
                     )
                 }
                 composable("enter_sync_code") {
-                    var syncCode by remember { mutableStateOf("") }
-                    var isCodeError by remember { mutableStateOf(false) }
+                    var syncCode by rememberSaveable { mutableStateOf("") }
+                    var isCodeError by rememberSaveable { mutableStateOf(false) }
 
                     EnterSyncCodeScreen(
                         code = syncCode,
@@ -58,7 +60,11 @@ fun AppNavigation() {
                             isCodeError = !isValid
 
                             if (isValid) {
-                                // TODO: Успішно! Переходимо на наступний екран
+                                navController.navigate("vault_locked") {
+                                    popUpTo("welcome") {
+                                        inclusive = false
+                                    }
+                                }
                             }
                         },
                         onScanQrClick = { /* TODO */ },
@@ -68,10 +74,10 @@ fun AppNavigation() {
                     )
                 }
                 composable("create_vault") {
-                    var masterPassword by remember { mutableStateOf("") }
-                    var confirmPassword by remember { mutableStateOf("") }
+                    var masterPassword by rememberSaveable { mutableStateOf("") }
+                    var confirmPassword by rememberSaveable { mutableStateOf("") }
 
-                    var isPasswordError by remember { mutableStateOf(false) }
+                    var isPasswordError by rememberSaveable { mutableStateOf(false) }
 
                     CreateVaultScreen(
                         masterPassword = masterPassword,
@@ -90,6 +96,26 @@ fun AppNavigation() {
                                 isPasswordError = true
                             } else {
                                 // TODO
+                            }
+                        }
+                    )
+                }
+                composable("vault_locked") {
+                    var password by rememberSaveable { mutableStateOf("") }
+                    var isPasswordError by rememberSaveable { mutableStateOf(false) }
+
+                    VaultLockedScreen(
+                        password = password,
+                        onPasswordChange = {
+                            password = it
+                            isPasswordError = false
+                        },
+                        isError = isPasswordError,
+                        onUnlockClick = {
+                            if (password == "1503") {
+                                // TODO
+                            } else {
+                                isPasswordError = true
                             }
                         }
                     )
