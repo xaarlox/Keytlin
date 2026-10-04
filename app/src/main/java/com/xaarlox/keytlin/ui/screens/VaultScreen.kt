@@ -47,7 +47,9 @@ val dummyVaultData = listOf(
 @Composable
 fun VaultScreen(
     onItemClick: (String) -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onNavigateToGenerator: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     var selectedBottomTab by remember { mutableIntStateOf(0) }
 
@@ -56,14 +58,11 @@ fun VaultScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(72.dp),
-                title = {
+                modifier = Modifier.height(72.dp), title = {
                     Text(
-                        text = "Vault",
-                        style = MaterialTheme.typography.headlineMedium
+                        text = "Vault", style = MaterialTheme.typography.headlineMedium
                     )
-                },
-                actions = {
+                }, actions = {
                     IconButton(onClick = { /* TODO: Search */ }) {
                         Icon(imageVector = Icons.Rounded.Search, contentDescription = "Search")
                     }
@@ -73,8 +72,7 @@ fun VaultScreen(
                             contentDescription = "Sort"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
+                }, colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -102,27 +100,28 @@ fun VaultScreen(
                     onClick = { selectedBottomTab = 0 },
                     icon = {
                         Icon(
-                            Icons.Outlined.AdminPanelSettings,
-                            contentDescription = "Vault"
+                            Icons.Outlined.AdminPanelSettings, contentDescription = "Vault"
                         )
                     },
-                    label = { Text("Vault") }
-                )
+                    label = { Text("Vault") })
                 NavigationBarItem(
                     selected = selectedBottomTab == 1,
-                    onClick = { selectedBottomTab = 1 },
+                    onClick = {
+                        selectedBottomTab = 1
+                        onNavigateToGenerator()
+                    },
                     icon = { Icon(Icons.Outlined.Autorenew, contentDescription = "Generator") },
-                    label = { Text("Generator") }
-                )
+                    label = { Text("Generator") })
                 NavigationBarItem(
                     selected = selectedBottomTab == 2,
-                    onClick = { selectedBottomTab = 2 },
+                    onClick = {
+                        selectedBottomTab = 2
+                        onNavigateToSettings()
+                    },
                     icon = { Icon(Icons.Outlined.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") }
-                )
+                    label = { Text("Settings") })
             }
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,9 +129,7 @@ fun VaultScreen(
         ) {
             items(dummyVaultData) { entry ->
                 VaultListItem(
-                    entry = entry,
-                    onClick = { onItemClick(entry.id) }
-                )
+                    entry = entry, onClick = { onItemClick(entry.id) })
             }
         }
     }

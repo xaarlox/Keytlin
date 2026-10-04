@@ -18,6 +18,7 @@ import com.xaarlox.keytlin.data.FakeVaultRepository
 import com.xaarlox.keytlin.data.VaultRepository
 import com.xaarlox.keytlin.ui.screens.CreateVaultScreen
 import com.xaarlox.keytlin.ui.screens.EnterSyncCodeScreen
+import com.xaarlox.keytlin.ui.screens.SettingsScreen
 import com.xaarlox.keytlin.ui.screens.VaultLockedScreen
 import com.xaarlox.keytlin.ui.screens.VaultScreen
 import com.xaarlox.keytlin.ui.screens.WelcomeChoiceScreen
@@ -132,7 +133,44 @@ fun AppNavigation() {
                         },
                         onAddClick = {
                             // TODO
+                        },
+                        onNavigateToGenerator = {
+                            // TODO
+                        },
+                        onNavigateToSettings = {
+                            navController.navigate("settings") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
+                    )
+                }
+                composable("settings") {
+                    SettingsScreen(
+                        onNavigateToVault = {
+                            navController.navigate("vault_main") {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToGenerator = {
+                            // TODO: navController.navigate("generator")
+                        },
+                        onChangePasswordClick = { /* TODO */ },
+                        onAutoLockClick = { /* TODO */ },
+                        onLockVaultClick = {
+                            navController.navigate("vault_locked") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        onSyncCodeClick = { /* TODO */ },
+                        onSyncNowClick = { /* TODO */ },
+                        onExportClick = { /* TODO */ },
+                        onDeleteClick = { /* TODO */ }
                     )
                 }
             }
