@@ -11,17 +11,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.xaarlox.keytlin.data.FakeVaultRepository
 import com.xaarlox.keytlin.data.VaultRepository
 import com.xaarlox.keytlin.ui.screens.CreateVaultScreen
 import com.xaarlox.keytlin.ui.screens.EnterSyncCodeScreen
+import com.xaarlox.keytlin.ui.screens.EntryDetailsScreen
+import com.xaarlox.keytlin.ui.screens.GeneratorScreen
 import com.xaarlox.keytlin.ui.screens.SettingsScreen
 import com.xaarlox.keytlin.ui.screens.VaultLockedScreen
 import com.xaarlox.keytlin.ui.screens.VaultScreen
 import com.xaarlox.keytlin.ui.screens.WelcomeChoiceScreen
+import com.xaarlox.keytlin.ui.screens.dummyVaultData
 
 @Composable
 fun AppNavigation() {
@@ -76,8 +81,8 @@ fun AppNavigation() {
                     )
                 }
                 composable("create_vault") {
-                    var masterPassword by rememberSaveable { mutableStateOf("") }
-                    var confirmPassword by rememberSaveable { mutableStateOf("") }
+                    var masterPassword by remember { mutableStateOf("") }
+                    var confirmPassword by remember { mutableStateOf("") }
 
                     var isPasswordError by rememberSaveable { mutableStateOf(false) }
 
@@ -116,7 +121,7 @@ fun AppNavigation() {
                         },
                         isError = isPasswordError,
                         onUnlockClick = {
-                            if (password == "1503") {
+                            if (vaultRepository.validateMasterPassword(password)) {
                                 navController.navigate("vault_main") {
                                     popUpTo("vault_locked") { inclusive = true }
                                 }
@@ -129,13 +134,35 @@ fun AppNavigation() {
                 composable("vault_main") {
                     VaultScreen(
                         onItemClick = { itemId ->
-                            // TODO
+                            navController.navigate("entry_details/$itemId")
                         },
                         onAddClick = {
-                            // TODO
+                            navController.navigate("entry_details/new")
                         },
                         onNavigateToGenerator = {
-                            // TODO
+                            navController.navigate("generator") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToSettings = {
+                            navController.navigate("settings") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+                composable("generator") {
+                    GeneratorScreen(
+                        onNavigateToVault = {
+                            navController.navigate("vault_main") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         },
                         onNavigateToSettings = {
                             navController.navigate("settings") {
@@ -158,7 +185,11 @@ fun AppNavigation() {
                             }
                         },
                         onNavigateToGenerator = {
-                            // TODO: navController.navigate("generator")
+                            navController.navigate("generator") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         },
                         onChangePasswordClick = { /* TODO */ },
                         onAutoLockClick = { /* TODO */ },
@@ -171,6 +202,39 @@ fun AppNavigation() {
                         onSyncNowClick = { /* TODO */ },
                         onExportClick = { /* TODO */ },
                         onDeleteClick = { /* TODO */ }
+                    )
+                }
+                composable("entry_details/new") {
+                    EntryDetailsScreen(
+                        entry = null,
+                        onBackClick = { navController.popBackStack() },
+                        onSaveClick = { newEntry ->
+                            // TODO: Зберегти newEntry в репозиторій
+                            navController.popBackStack()
+                        },
+                        onDeleteClick = {}
+                    )
+                }
+                composable(
+                    route = "entry_details/{entryId}",
+                    arguments = listOf(navArgument("entryId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val entryId = backStackEntry.arguments?.getString("entryId")
+
+                    // TODO: Пізніше ви будете отримувати entry з ViewModel/репозиторію за цим ID.
+                    val entry = dummyVaultData.find { it.id == entryId }
+
+                    EntryDetailsScreen(
+                        entry = entry,
+                        onBackClick = { navController.popBackStack() },
+                        onSaveClick = { updatedEntry ->
+                            // TODO: Оновити запис у репозиторії
+                            navController.popBackStack()
+                        },
+                        onDeleteClick = {
+                            // TODO: Видалити запис
+                            navController.popBackStack()
+                        }
                     )
                 }
             }
