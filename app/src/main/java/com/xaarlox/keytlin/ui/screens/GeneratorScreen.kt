@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,27 +12,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AdminPanelSettings
-import androidx.compose.material.icons.outlined.Autorenew
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,13 +35,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.xaarlox.keytlin.domain.service.PasswordGenerator
+import com.xaarlox.keytlin.ui.components.MainScaffold
 import com.xaarlox.keytlin.ui.components.ToggleListItem
 
 private const val MIN_LENGTH = 8
 private const val MAX_LENGTH = 64
 private val STRONG_GREEN = Color(0xFF2E7D32)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneratorScreen(
     onNavigateToVault: () -> Unit,
@@ -90,63 +79,11 @@ fun GeneratorScreen(
             generator.generate(length.toInt(), useUpper, useLower, useDigits, useSymbols)
     }
 
-    var selectedBottomTab by remember { mutableIntStateOf(1) }
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.height(72.dp),
-                title = {
-                    Text(
-                        text = "Generator",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                modifier = Modifier.height(72.dp),
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                windowInsets = WindowInsets(0.dp)
-            ) {
-                NavigationBarItem(
-                    selected = selectedBottomTab == 0,
-                    onClick = {
-                        selectedBottomTab = 0
-                        onNavigateToVault()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Outlined.AdminPanelSettings,
-                            contentDescription = "Vault"
-                        )
-                    },
-                    label = { Text("Vault") }
-                )
-                NavigationBarItem(
-                    selected = selectedBottomTab == 1,
-                    onClick = { selectedBottomTab = 1 },
-                    icon = { Icon(Icons.Outlined.Autorenew, contentDescription = "Generator") },
-                    label = { Text("Generator") }
-                )
-                NavigationBarItem(
-                    selected = selectedBottomTab == 2,
-                    onClick = {
-                        selectedBottomTab = 2
-                        onNavigateToSettings()
-                    },
-                    icon = { Icon(Icons.Outlined.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") }
-                )
-            }
-        }
+    MainScaffold(
+        title = "Generator",
+        selectedTab = 1,
+        onNavigateToVault = onNavigateToVault,
+        onNavigateToSettings = onNavigateToSettings
     ) { innerPadding ->
         Column(
             modifier = Modifier

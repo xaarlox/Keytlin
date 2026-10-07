@@ -32,7 +32,7 @@ import com.xaarlox.keytlin.ui.screens.dummyVaultData
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // Пізніше - DI (Hilt/Koin/Dagger)
+    // DI later (Hilt/Koin/Dagger)
     val vaultRepository: VaultRepository = remember { FakeVaultRepository() }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -140,56 +140,30 @@ fun AppNavigation() {
                             navController.navigate("entry_details/new")
                         },
                         onNavigateToGenerator = {
-                            navController.navigate("generator") {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab("generator")
                         },
                         onNavigateToSettings = {
-                            navController.navigate("settings") {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab("settings")
                         }
                     )
                 }
                 composable("generator") {
                     GeneratorScreen(
                         onNavigateToVault = {
-                            navController.navigate("vault_main") {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab("vault_main")
                         },
                         onNavigateToSettings = {
-                            navController.navigate("settings") {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab("settings")
                         }
                     )
                 }
                 composable("settings") {
                     SettingsScreen(
                         onNavigateToVault = {
-                            navController.navigate("vault_main") {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab("vault_main")
                         },
                         onNavigateToGenerator = {
-                            navController.navigate("generator") {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateToTab("generator")
                         },
                         onChangePasswordClick = { /* TODO */ },
                         onAutoLockClick = { /* TODO */ },
@@ -209,7 +183,7 @@ fun AppNavigation() {
                         entry = null,
                         onBackClick = { navController.popBackStack() },
                         onSaveClick = { newEntry ->
-                            // TODO: Зберегти newEntry в репозиторій
+                            // TODO: Save newEntry
                             navController.popBackStack()
                         },
                         onDeleteClick = {}
@@ -221,18 +195,18 @@ fun AppNavigation() {
                 ) { backStackEntry ->
                     val entryId = backStackEntry.arguments?.getString("entryId")
 
-                    // TODO: Пізніше ви будете отримувати entry з ViewModel/репозиторію за цим ID.
+                    // TODO
                     val entry = dummyVaultData.find { it.id == entryId }
 
                     EntryDetailsScreen(
                         entry = entry,
                         onBackClick = { navController.popBackStack() },
                         onSaveClick = { updatedEntry ->
-                            // TODO: Оновити запис у репозиторії
+                            // TODO
                             navController.popBackStack()
                         },
                         onDeleteClick = {
-                            // TODO: Видалити запис
+                            // TODO
                             navController.popBackStack()
                         }
                     )

@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.xaarlox.keytlin.domain.models.VaultEntry
+import com.xaarlox.keytlin.domain.service.PasswordGenerator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +67,8 @@ fun EntryDetailsScreen(
 
     var password by remember { mutableStateOf(entry?.password ?: "") }
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val generator = remember { PasswordGenerator() }
 
     val isEditing = entry != null
     val screenTitle = if (isEditing) title.ifEmpty { "Unnamed Entry" } else "New Entry"
@@ -174,7 +177,16 @@ fun EntryDetailsScreen(
                                 contentDescription = "Toggle visibility"
                             )
                         }
-                        IconButton(onClick = { /* TODO: Generate Password */ }) {
+                        IconButton(onClick = {
+                            password = generator.generate(
+                                length = 16,
+                                useUpper = true,
+                                useLower = true,
+                                useDigits = true,
+                                useSymbols = true
+                            )
+                            isPasswordVisible = true
+                        }) {
                             Icon(
                                 imageVector = Icons.Rounded.Casino,
                                 contentDescription = "Generate password"
