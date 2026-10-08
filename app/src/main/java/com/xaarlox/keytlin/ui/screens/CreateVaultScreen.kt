@@ -1,42 +1,26 @@
 package com.xaarlox.keytlin.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.WarningAmber
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.xaarlox.keytlin.ui.components.PasswordTextField
+import com.xaarlox.keytlin.ui.components.PrimaryButton
+import com.xaarlox.keytlin.ui.components.ScreenColumn
 import com.xaarlox.keytlin.ui.theme.LocalExtendedColors
 
 @Composable
@@ -48,19 +32,9 @@ fun CreateVaultScreen(
     isError: Boolean,
     onCreateClick: () -> Unit
 ) {
-    var isMasterVisible by remember { mutableStateOf(false) }
-    var isConfirmVisible by remember { mutableStateOf(false) }
-
     val warningColors = LocalExtendedColors.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .imePadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp)
-    ) {
+    ScreenColumn {
         Text(
             text = "Create Vault",
             style = MaterialTheme.typography.headlineMedium,
@@ -92,75 +66,25 @@ fun CreateVaultScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
+        PasswordTextField(
             value = masterPassword,
             onValueChange = onMasterPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Master Password") },
-            singleLine = true,
-            isError = isError,
-            colors = OutlinedTextFieldDefaults.colors(
-                errorTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            visualTransformation = if (isMasterVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            trailingIcon = {
-                IconButton(onClick = { isMasterVisible = !isMasterVisible }) {
-                    Icon(
-                        imageVector = if (isMasterVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                        contentDescription = "Toggle password visibility"
-                    )
-                }
-            },
-            shape = MaterialTheme.shapes.large
+            label = "Master Password",
+            isError = isError
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        PasswordTextField(
             value = confirmPassword,
             onValueChange = onConfirmPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Confirm Password") },
-            singleLine = true,
+            label = "Confirm Password",
             isError = isError,
-            colors = OutlinedTextFieldDefaults.colors(
-                errorTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            supportingText = {
-                if (isError) {
-                    Text(
-                        text = if (masterPassword.isEmpty()) "Password cannot be empty" else "Passwords do not match",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            visualTransformation = if (isConfirmVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            trailingIcon = {
-                IconButton(onClick = { isConfirmVisible = !isConfirmVisible }) {
-                    Icon(
-                        imageVector = if (isConfirmVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                        contentDescription = "Toggle confirm password visibility"
-                    )
-                }
-            },
-            shape = MaterialTheme.shapes.large
+            errorText = if (masterPassword.isEmpty()) "Password cannot be empty" else "Passwords do not match"
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Button(
-            onClick = onCreateClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = MaterialTheme.shapes.extraLarge
-        ) {
-            Text(
-                text = "Create",
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
+        PrimaryButton(text = "Create", onClick = onCreateClick)
     }
 }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,11 +35,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.xaarlox.keytlin.domain.service.PasswordGenerator
 import com.xaarlox.keytlin.ui.components.MainScaffold
+import com.xaarlox.keytlin.ui.components.PrimaryButton
 import com.xaarlox.keytlin.ui.components.ToggleListItem
+import com.xaarlox.keytlin.ui.theme.LocalExtendedColors
 
 private const val MIN_LENGTH = 8
 private const val MAX_LENGTH = 64
-private val STRONG_GREEN = Color(0xFF2E7D32)
 
 @Composable
 fun GeneratorScreen(
@@ -62,12 +62,15 @@ fun GeneratorScreen(
         )
     }
 
+    val extendedColors = LocalExtendedColors.current
+
     val entropyBits = generator.calculateEntropyBits(
         length.toInt(), useUpper, useLower, useDigits, useSymbols
     )
     val isStrong = entropyBits >= 40.0
     val strengthLabel = if (isStrong) "SECURE" else "WEAK"
-    val strengthColor = if (isStrong) STRONG_GREEN else MaterialTheme.colorScheme.error
+    val strengthColor =
+        if (isStrong) extendedColors.passwordStrong else MaterialTheme.colorScheme.error
 
     fun canDisable(current: Boolean): Boolean {
         val enabledCount = listOf(useUpper, useLower, useDigits, useSymbols).count { it }
@@ -216,18 +219,7 @@ fun GeneratorScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = { regenerate() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = MaterialTheme.shapes.extraLarge
-            ) {
-                Text(
-                    text = "Generate New",
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
+            PrimaryButton(text = "Generate New", onClick = { regenerate() })
         }
     }
 }

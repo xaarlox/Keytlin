@@ -93,24 +93,28 @@ private val darkScheme = darkColorScheme(
 @Immutable
 data class ExtendedColors(
     val warningContainer: Color,
-    val onWarningContainer: Color
+    val onWarningContainer: Color,
+    val passwordStrong: Color
 )
 
 val LocalExtendedColors = staticCompositionLocalOf {
     ExtendedColors(
         warningContainer = Color.Unspecified,
-        onWarningContainer = Color.Unspecified
+        onWarningContainer = Color.Unspecified,
+        passwordStrong = Color.Unspecified
     )
 }
 
 val lightExtendedColors = ExtendedColors(
     warningContainer = warningContainerLight,
-    onWarningContainer = onWarningContainerLight
+    onWarningContainer = onWarningContainerLight,
+    passwordStrong = PasswordStrongLight
 )
 
 val darkExtendedColors = ExtendedColors(
     warningContainer = warningContainerDark,
-    onWarningContainer = onWarningContainerDark
+    onWarningContainer = onWarningContainerDark,
+    passwordStrong = PasswordStrongDark
 )
 
 @Composable

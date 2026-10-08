@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -43,14 +39,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.xaarlox.keytlin.domain.models.VaultEntry
 import com.xaarlox.keytlin.domain.service.PasswordGenerator
+import com.xaarlox.keytlin.ui.components.AppTextField
+import com.xaarlox.keytlin.ui.components.PasswordTextField
+import com.xaarlox.keytlin.ui.theme.LocalExtendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,16 +62,25 @@ fun EntryDetailsScreen(
     var notes by rememberSaveable { mutableStateOf(entry?.notes ?: "") }
 
     var password by remember { mutableStateOf(entry?.password ?: "") }
-    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     val generator = remember { PasswordGenerator() }
 
     val isEditing = entry != null
     val screenTitle = if (isEditing) title.ifEmpty { "Unnamed Entry" } else "New Entry"
 
-    val passwordStrength = if (password.length > 8) 1f else if (password.isNotEmpty()) 0.3f else 0f
-    val isStrong = passwordStrength > 0.5f
-    val strengthColor = if (isStrong) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+    val extendedColors = LocalExtendedColors.current
+
+    val entropyBits = generator.calculateEntropyBits(
+        length = password.length,
+        useUpper = password.any { it.isUpperCase() },
+        useLower = password.any { it.isLowerCase() },
+        useDigits = password.any { it.isDigit() },
+        useSymbols = password.any { it.isLetterOrDigit() }
+    )
+    val isStrong = entropyBits >= 40.0
+
+    val strengthColor =
+        if (isStrong) extendedColors.passwordStrong else MaterialTheme.colorScheme.error
     val strengthText = if (isStrong) "Strong Password" else "Weak / Reused Password"
 
     val isBreached = password == "12345678" || password.lowercase() == "password"
@@ -127,74 +132,47 @@ fun EntryDetailsScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
+            AppTextField(
                 value = title,
                 onValueChange = { title = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Website/App Name") },
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = MaterialTheme.shapes.large
+                label = "Website/App Name"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            AppTextField(
                 value = username,
                 onValueChange = { username = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Username/Email") },
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = MaterialTheme.shapes.large
+                label = "Username/Email"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            PasswordTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") },
-                singleLine = true,
+                label = "Password",
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedLabelColor = MaterialTheme.colorScheme.primary,
                     focusedLabelColor = MaterialTheme.colorScheme.primary
                 ),
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                trailingIcon = {
-                    Row(modifier = Modifier.padding(end = 8.dp)) {
-                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                            Icon(
-                                imageVector = if (isPasswordVisible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                                contentDescription = "Toggle visibility"
-                            )
-                        }
-                        IconButton(onClick = {
-                            password = generator.generate(
-                                length = 16,
-                                useUpper = true,
-                                useLower = true,
-                                useDigits = true,
-                                useSymbols = true
-                            )
-                            isPasswordVisible = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Rounded.Casino,
-                                contentDescription = "Generate password"
-                            )
-                        }
+                trailingActions = { reveal ->
+                    IconButton(onClick = {
+                        password = generator.generate(
+                            length = 16,
+                            useUpper = true,
+                            useLower = true,
+                            useDigits = true,
+                            useSymbols = true
+                        )
+                        reveal()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Casino,
+                            contentDescription = "Generate password"
+                        )
                     }
-                },
-                shape = MaterialTheme.shapes.large
+                }
             )
 
             if (password.isNotEmpty()) {
@@ -204,7 +182,7 @@ fun EntryDetailsScreen(
                         .padding(top = 8.dp, start = 4.dp, end = 4.dp)
                 ) {
                     LinearProgressIndicator(
-                        progress = { passwordStrength },
+                        progress = { entropyBits.toFloat() },
                         modifier = Modifier.fillMaxWidth(),
                         color = strengthColor,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -273,34 +251,21 @@ fun EntryDetailsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            AppTextField(
                 value = url,
                 onValueChange = { url = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("URL") },
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                shape = MaterialTheme.shapes.large
+                label = "URL",
+                keyboardType = KeyboardType.Uri
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            AppTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                label = { Text("Notes") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedLabelColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = MaterialTheme.shapes.large
+                label = "Notes",
+                singleLine = false,
+                modifier = Modifier.height(120.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))

@@ -1,33 +1,24 @@
 package com.xaarlox.keytlin.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.xaarlox.keytlin.ui.components.AppTextField
+import com.xaarlox.keytlin.ui.components.PrimaryButton
+import com.xaarlox.keytlin.ui.components.ScreenColumn
 
 @Composable
 fun EnterSyncCodeScreen(
@@ -38,18 +29,7 @@ fun EnterSyncCodeScreen(
     onScanQrClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .imePadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
+    ScreenColumn(verticalPadding = 16.dp) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBackClick) {
                 Icon(
@@ -78,48 +58,21 @@ fun EnterSyncCodeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
+        AppTextField(
             value = code,
             onValueChange = onCodeChange,
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            label = { Text("Sync code") },
-            singleLine = true,
+            label = "Sync code",
             isError = isError,
-            colors = OutlinedTextFieldDefaults.colors(
-                errorTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            supportingText = {
-                if (isError) {
-                    Text(
-                        text = "Code not found",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
+            errorText = "Code not found",
             trailingIcon = {
                 IconButton(onClick = onScanQrClick) {
-                    Icon(
-                        imageVector = Icons.Rounded.QrCodeScanner,
-                        contentDescription = "Scan QR code"
-                    )
+                    Icon(Icons.Rounded.QrCodeScanner, contentDescription = "Scan QR code")
                 }
             }
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Button(
-            onClick = onContinueClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = MaterialTheme.shapes.extraLarge
-        ) {
-            Text(
-                text = "Continue",
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
+        PrimaryButton(text = "Continue", onClick = onContinueClick)
     }
 }
