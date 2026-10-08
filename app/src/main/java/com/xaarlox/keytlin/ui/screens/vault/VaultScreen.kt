@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.screens
+package com.xaarlox.keytlin.ui.screens.vault
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,8 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.xaarlox.keytlin.domain.models.VaultEntry
-import com.xaarlox.keytlin.ui.components.MainScaffold
-import com.xaarlox.keytlin.ui.components.VaultListItem
+import com.xaarlox.keytlin.ui.components.layout.MainScaffold
+import com.xaarlox.keytlin.ui.components.list.VaultListItem
 
 val dummyVaultData = listOf(
     VaultEntry(id = "1", title = "Google", username = "sarah.connor@gmail.com"),

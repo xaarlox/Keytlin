@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.screens
+package com.xaarlox.keytlin.ui.screens.settings
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,9 +13,9 @@ import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.xaarlox.keytlin.ui.components.MainScaffold
-import com.xaarlox.keytlin.ui.components.SettingsListItem
-import com.xaarlox.keytlin.ui.components.SettingsSectionHeader
+import com.xaarlox.keytlin.ui.components.layout.MainScaffold
+import com.xaarlox.keytlin.ui.components.list.SettingsListItem
+import com.xaarlox.keytlin.ui.components.list.SettingsSectionHeader
 
 @Composable
 fun SettingsScreen(

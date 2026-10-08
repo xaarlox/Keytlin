@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.components
+package com.xaarlox.keytlin.ui.components.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height

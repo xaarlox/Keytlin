@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.screens
+package com.xaarlox.keytlin.ui.screens.auth
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,9 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.xaarlox.keytlin.ui.components.AppTextField
-import com.xaarlox.keytlin.ui.components.PrimaryButton
-import com.xaarlox.keytlin.ui.components.ScreenColumn
+import com.xaarlox.keytlin.ui.components.common.PrimaryButton
+import com.xaarlox.keytlin.ui.components.common.ScreenColumn
+import com.xaarlox.keytlin.ui.components.input.AppTextField
 
 @Composable
 fun EnterSyncCodeScreen(

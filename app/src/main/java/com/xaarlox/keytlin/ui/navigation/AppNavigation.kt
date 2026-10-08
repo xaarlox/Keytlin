@@ -18,15 +18,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.xaarlox.keytlin.data.FakeVaultRepository
 import com.xaarlox.keytlin.data.VaultRepository
-import com.xaarlox.keytlin.ui.screens.CreateVaultScreen
-import com.xaarlox.keytlin.ui.screens.EnterSyncCodeScreen
-import com.xaarlox.keytlin.ui.screens.EntryDetailsScreen
-import com.xaarlox.keytlin.ui.screens.GeneratorScreen
-import com.xaarlox.keytlin.ui.screens.SettingsScreen
-import com.xaarlox.keytlin.ui.screens.VaultLockedScreen
-import com.xaarlox.keytlin.ui.screens.VaultScreen
-import com.xaarlox.keytlin.ui.screens.WelcomeChoiceScreen
-import com.xaarlox.keytlin.ui.screens.dummyVaultData
+import com.xaarlox.keytlin.ui.screens.auth.CreateVaultScreen
+import com.xaarlox.keytlin.ui.screens.auth.EnterSyncCodeScreen
+import com.xaarlox.keytlin.ui.screens.vault.EntryDetailsScreen
+import com.xaarlox.keytlin.ui.screens.generator.GeneratorScreen
+import com.xaarlox.keytlin.ui.screens.settings.SettingsScreen
+import com.xaarlox.keytlin.ui.screens.auth.VaultLockedScreen
+import com.xaarlox.keytlin.ui.screens.vault.VaultScreen
+import com.xaarlox.keytlin.ui.screens.welcome.WelcomeChoiceScreen
+import com.xaarlox.keytlin.ui.screens.vault.dummyVaultData
 
 @Composable
 fun AppNavigation() {

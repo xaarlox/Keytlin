@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.components
+package com.xaarlox.keytlin.ui.components.list
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.components
+package com.xaarlox.keytlin.ui.components.input
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope

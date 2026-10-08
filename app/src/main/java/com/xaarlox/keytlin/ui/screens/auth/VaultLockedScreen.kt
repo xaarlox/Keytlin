@@ -1,4 +1,4 @@
-package com.xaarlox.keytlin.ui.screens
+package com.xaarlox.keytlin.ui.screens.auth
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -8,10 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.xaarlox.keytlin.ui.components.BrandHeader
-import com.xaarlox.keytlin.ui.components.PasswordTextField
-import com.xaarlox.keytlin.ui.components.PrimaryButton
-import com.xaarlox.keytlin.ui.components.ScreenColumn
+import com.xaarlox.keytlin.ui.components.common.BrandHeader
+import com.xaarlox.keytlin.ui.components.common.PrimaryButton
+import com.xaarlox.keytlin.ui.components.common.ScreenColumn
+import com.xaarlox.keytlin.ui.components.input.PasswordTextField
 
 @Composable
 fun VaultLockedScreen(
