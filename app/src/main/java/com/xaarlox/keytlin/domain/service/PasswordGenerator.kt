@@ -1,52 +1,31 @@
 package com.xaarlox.keytlin.domain.service
 
+import com.xaarlox.keytlin.domain.models.CharacterSets
+import com.xaarlox.keytlin.domain.models.GeneratorOptions
 import java.security.SecureRandom
-import kotlin.math.ln
 
 class PasswordGenerator {
     private val random = SecureRandom()
 
-    private val upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    private val lowerChars = "abcdefghijklmnopqrstuvwxyz"
-    private val digitChars = "0123456789"
-    private val symbolChars = "!@#$%^&*()-_=+[]{}"
+    fun generate(options: GeneratorOptions): String {
+        val sets = buildList {
+            if (options.useUpper) add(CharacterSets.UPPER)
+            if (options.useLower) add(CharacterSets.LOWER)
+            if (options.useDigits) add(CharacterSets.DIGITS)
+            if (options.useSymbols) add(CharacterSets.SYMBOLS)
+        }.ifEmpty { listOf(CharacterSets.LOWER) }
 
-    fun generate(
-        length: Int,
-        useUpper: Boolean,
-        useLower: Boolean,
-        useDigits: Boolean,
-        useSymbols: Boolean
-    ): String {
-        val pool = buildString {
-            if (useUpper) append(upperChars)
-            if (useLower) append(lowerChars)
-            if (useDigits) append(digitChars)
-            if (useSymbols) append(symbolChars)
-        }.ifEmpty { lowerChars }
+        val pool = sets.joinToString("")
 
-        return buildString {
-            repeat(length) {
-                append(pool[random.nextInt(pool.length)])
-            }
+        val required = sets.map { it[random.nextInt(it.length)] }
+        val rest = List((options.length - required.size).coerceAtLeast(0)) {
+            pool[random.nextInt(pool.length)]
         }
-    }
 
-    fun calculateEntropyBits(
-        length: Int,
-        useUpper: Boolean,
-        useLower: Boolean,
-        useDigits: Boolean,
-        useSymbols: Boolean
-    ): Double {
-        var poolSize = 0
+        return (required + rest)
+            .shuffled(random)
+            .take(options.length)
+            .joinToString("")
 
-        if (useUpper) poolSize += upperChars.length
-        if (useLower) poolSize += lowerChars.length
-        if (useDigits) poolSize += digitChars.length
-        if (useSymbols) poolSize += symbolChars.length
-        if (poolSize == 0) poolSize = lowerChars.length
-
-        return length * (ln(poolSize.toDouble()) / ln(2.0))
     }
 }

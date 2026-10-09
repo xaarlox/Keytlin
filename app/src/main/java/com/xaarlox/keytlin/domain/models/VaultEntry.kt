@@ -1,5 +1,8 @@
 package com.xaarlox.keytlin.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class VaultEntry(
     val id: String,
     val title: String,

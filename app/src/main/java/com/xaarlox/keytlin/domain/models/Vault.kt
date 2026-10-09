@@ -1,20 +1,20 @@
 package com.xaarlox.keytlin.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Vault(
-    val entries: MutableList<VaultEntry> = mutableListOf()
+    val entries: List<VaultEntry> = emptyList()
 ) {
-    fun addEntry(entry: VaultEntry) {
-        entries.add(entry)
-    }
+    fun withEntry(entry: VaultEntry): Vault = copy(entries = entries + entry)
 
-    fun updateEntry(entry: VaultEntry) {
-        val index = entries.indexOfFirst { it.id == entry.id }
-        if (index != -1) {
-            entries[index] = entry
+    fun withUpdated(entry: VaultEntry): Vault = copy(
+        entries = entries.map {
+            if (it.id == entry.id) entry.copy(modifiedAt = System.currentTimeMillis()) else it
         }
-    }
+    )
 
-    fun clear() {
-        entries.clear()
-    }
+    fun without(id: String): Vault = copy(entries = entries.filterNot { it.id == id })
+
+    fun find(id: String): VaultEntry? = entries.find { it.id == id }
 }

@@ -13,13 +13,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.xaarlox.keytlin.domain.models.VaultEntry
+import com.xaarlox.keytlin.domain.models.initials
 import com.xaarlox.keytlin.ui.components.common.LeadingCircle
 import com.xaarlox.keytlin.ui.components.common.ListItemDivider
 
@@ -29,25 +29,6 @@ fun VaultListItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Бізнес-логіка, яка буде винесена пізніше
-    val initials = remember(entry.title) {
-        val title = entry.title.trim()
-        if (title.isEmpty()) return@remember "V"
-
-        var result = title[0].uppercaseChar().toString()
-
-        val words = title.split(Regex("\\s+"))
-        if (words.size > 1 && words[1].isNotEmpty()) {
-            result += words[1][0].uppercaseChar()
-        } else {
-            val secondCapital = title.drop(1).firstOrNull { it.isUpperCase() }
-            if (secondCapital != null) {
-                result += secondCapital
-            }
-        }
-        result.take(2)
-    }
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -61,7 +42,7 @@ fun VaultListItem(
         ) {
             LeadingCircle {
                 Text(
-                    text = initials,
+                    text = entry.initials,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )

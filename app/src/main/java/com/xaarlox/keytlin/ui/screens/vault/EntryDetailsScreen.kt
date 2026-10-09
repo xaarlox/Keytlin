@@ -33,16 +33,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.xaarlox.keytlin.domain.models.GeneratorOptions
+import com.xaarlox.keytlin.domain.service.PasswordStrengthEvaluator
 import com.xaarlox.keytlin.domain.models.VaultEntry
 import com.xaarlox.keytlin.domain.service.PasswordGenerator
+import com.xaarlox.keytlin.ui.components.common.label
+import com.xaarlox.keytlin.ui.components.common.uiColor
 import com.xaarlox.keytlin.ui.components.input.AppTextField
 import com.xaarlox.keytlin.ui.components.input.PasswordTextField
-import com.xaarlox.keytlin.ui.theme.LocalExtendedColors
 import java.util.UUID
 import kotlin.text.ifEmpty
 
-private const val STRONG_ENTROPY_BITS = 40.0
-private const val MAX_ENTROPY_BITS = 100.0
+private const val GENERATED_PASSWORD_LENGTH = 16
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,23 +61,11 @@ fun EntryDetailsScreen(
     var password by remember { mutableStateOf(entry?.password ?: "") }
 
     val generator = remember { PasswordGenerator() }
-    val extendedColors = LocalExtendedColors.current
+    val evaluator = remember { PasswordStrengthEvaluator() }
+    val analysis = remember(password) { evaluator.analyze(password) }
 
     val isEditing = entry != null
     val screenTitle = if (isEditing) title.ifEmpty { "Unnamed Entry" } else "New Entry"
-
-    val entropyBits = generator.calculateEntropyBits(
-        length = password.length,
-        useUpper = password.any { it.isUpperCase() },
-        useLower = password.any { it.isLowerCase() },
-        useDigits = password.any { it.isDigit() },
-        useSymbols = password.any { !it.isLetterOrDigit() }
-    )
-    val isStrong = entropyBits >= STRONG_ENTROPY_BITS
-    val strengthColor =
-        if (isStrong) extendedColors.passwordStrong else MaterialTheme.colorScheme.error
-    val strengthText = if (isStrong) "Strong Password" else "Weak / Reused Password"
-    val isBreached = password == "12345678" || password.lowercase() == "password"
 
     Scaffold(
         topBar = {
@@ -148,11 +138,7 @@ fun EntryDetailsScreen(
                 trailingActions = { reveal ->
                     IconButton(onClick = {
                         password = generator.generate(
-                            length = 16,
-                            useUpper = true,
-                            useLower = true,
-                            useDigits = true,
-                            useSymbols = true
+                            GeneratorOptions(length = GENERATED_PASSWORD_LENGTH)
                         )
                         reveal()
                     }) {
@@ -166,13 +152,13 @@ fun EntryDetailsScreen(
 
             if (password.isNotEmpty()) {
                 PasswordStrengthIndicator(
-                    progress = (entropyBits / MAX_ENTROPY_BITS).toFloat(),
-                    label = strengthText,
-                    color = strengthColor,
+                    progress = analysis.progress,
+                    label = "${analysis.strength.label} password",
+                    color = analysis.strength.uiColor(),
                     modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp)
                 )
 
-                if (isBreached) {
+                if (analysis.isBreachedLocally) {
                     Spacer(modifier = Modifier.height(16.dp))
                     BreachedPasswordCard(
                         onSaveAnyway = { /* TODO: Save anyway */ },

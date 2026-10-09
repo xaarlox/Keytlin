@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -20,56 +18,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
+import com.xaarlox.keytlin.domain.models.GeneratorOptions
+import com.xaarlox.keytlin.domain.service.PasswordStrengthEvaluator
 import com.xaarlox.keytlin.domain.service.PasswordGenerator
 import com.xaarlox.keytlin.ui.components.common.PrimaryButton
+import com.xaarlox.keytlin.ui.components.common.label
+import com.xaarlox.keytlin.ui.components.common.uiColor
 import com.xaarlox.keytlin.ui.components.layout.MainScaffold
 import com.xaarlox.keytlin.ui.components.list.ToggleListItem
-import com.xaarlox.keytlin.ui.theme.LocalExtendedColors
 import kotlinx.coroutines.launch
-
-private const val MIN_LENGTH = 8
-private const val MAX_LENGTH = 64
-private const val DEFAULT_LENGTH = 13
-private const val STRONG_ENTROPY_BITS = 40.0
 
 @Composable
 fun GeneratorScreen(
-    onNavigateToVault: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToVault: () -> Unit, onNavigateToSettings: () -> Unit
 ) {
     val generator = remember { PasswordGenerator() }
-
+    val evaluator = remember { PasswordStrengthEvaluator() }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val extendedColors = LocalExtendedColors.current
 
-    var length by remember { mutableFloatStateOf(DEFAULT_LENGTH.toFloat()) }
-    var useUpper by remember { mutableStateOf(true) }
-    var useLower by remember { mutableStateOf(true) }
-    var useDigits by remember { mutableStateOf(true) }
-    var useSymbols by remember { mutableStateOf(true) }
-
+    var options by remember { mutableStateOf(GeneratorOptions()) }
     var generatedPassword by remember {
         mutableStateOf(
-            generator.generate(DEFAULT_LENGTH, useUpper, useLower, useDigits, useSymbols)
+            generator.generate(GeneratorOptions())
         )
     }
 
-    fun regenerate() {
-        generatedPassword =
-            generator.generate(length.toInt(), useUpper, useLower, useDigits, useSymbols)
+    fun update(newOptions: GeneratorOptions) {
+        options = newOptions
+        generatedPassword = generator.generate(newOptions)
     }
 
-    val enabledCount = listOf(useUpper, useLower, useDigits, useSymbols).count { it }
-    fun canChange(newValue: Boolean) = newValue || enabledCount > 1
+    fun canChange(newValue: Boolean) = newValue || options.enabledSetsCount > 1
 
-    val entropyBits = generator.calculateEntropyBits(
-        length.toInt(), useUpper, useLower, useDigits, useSymbols
-    )
-    val isStrong = entropyBits >= STRONG_ENTROPY_BITS
-    val strengthLabel = if (isStrong) "SECURE" else "WEAK"
-    val strengthColor =
-        if (isStrong) extendedColors.passwordStrong else MaterialTheme.colorScheme.error
+    val analysis = remember(generatedPassword) { evaluator.analyze(generatedPassword) }
 
     MainScaffold(
         title = "Generator",
@@ -86,28 +68,24 @@ fun GeneratorScreen(
         ) {
             GeneratedPasswordCard(
                 password = generatedPassword,
-                strengthLabel = strengthLabel,
-                strengthColor = strengthColor,
+                strengthLabel = analysis.strength.label.uppercase(),
+                strengthColor = analysis.strength.uiColor(),
                 onCopyClick = {
                     scope.launch {
                         clipboard.setClipEntry(
                             ClipEntry(ClipData.newPlainText("password", generatedPassword))
                         )
                     }
-                }
-            )
+                })
 
             Spacer(modifier = Modifier.height(32.dp))
 
             LabeledSlider(
                 label = "Password Length",
-                value = length,
-                onValueChange = {
-                    length = it
-                    regenerate()
-                },
-                valueRange = MIN_LENGTH.toFloat()..MAX_LENGTH.toFloat(),
-                steps = MAX_LENGTH - MIN_LENGTH - 1
+                value = options.length.toFloat(),
+                onValueChange = { update(options.copy(length = it.toInt())) },
+                valueRange = GeneratorOptions.MIN_LENGTH.toFloat()..GeneratorOptions.MAX_LENGTH.toFloat(),
+                steps = GeneratorOptions.MAX_LENGTH - GeneratorOptions.MIN_LENGTH - 1
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -115,51 +93,37 @@ fun GeneratorScreen(
             ToggleListItem(
                 title = "Uppercase",
                 subtitle = "A-Z",
-                checked = useUpper,
+                checked = options.useUpper,
                 onCheckedChange = {
-                    if (canChange(it)) {
-                        useUpper = it
-                        regenerate()
-                    }
-                }
-            )
+                    if (canChange(it)) update(options.copy(useUpper = it))
+                })
             ToggleListItem(
                 title = "Lowercase",
                 subtitle = "a-z",
-                checked = useLower,
+                checked = options.useLower,
                 onCheckedChange = {
-                    if (canChange(it)) {
-                        useLower = it
-                        regenerate()
-                    }
-                }
-            )
+                    if (canChange(it)) update(options.copy(useLower = it))
+                })
             ToggleListItem(
                 title = "Numbers",
                 subtitle = "0-9",
-                checked = useDigits,
+                checked = options.useDigits,
                 onCheckedChange = {
-                    if (canChange(it)) {
-                        useDigits = it
-                        regenerate()
-                    }
-                }
-            )
+                    if (canChange(it)) update(options.copy(useDigits = it))
+                })
             ToggleListItem(
                 title = "Symbols",
                 subtitle = "@#[$",
-                checked = useSymbols,
+                checked = options.useSymbols,
                 onCheckedChange = {
-                    if (canChange(it)) {
-                        useSymbols = it
-                        regenerate()
-                    }
-                }
-            )
+                    if (canChange(it)) update(options.copy(useSymbols = it))
+                })
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            PrimaryButton(text = "Generate New", onClick = { regenerate() })
+            PrimaryButton(
+                text = "Generate New",
+                onClick = { generatedPassword = generator.generate(options) })
         }
     }
 }
