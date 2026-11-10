@@ -38,6 +38,11 @@ android {
     }
 }
 
+ksp {
+    // Room database schema export to JSON (app/schemas/) — required for migrations
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -56,6 +61,10 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.argon2kt)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

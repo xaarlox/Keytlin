@@ -4,13 +4,16 @@ import com.xaarlox.keytlin.domain.models.VaultEntry
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Single point of access to the vault data for the presentation layer.
+ * Single point of access to vault data for the presentation layer
  *
- * Reading is performed via [Flow]: any data change (adding, editing,
- * deleting, locking) is automatically propagated to all subscribed screens
+ * Reads occur via [Flow]: any data change (addition, editing,
+ * deletion, locking) automatically propagates to all subscribed screens
  */
 interface VaultRepository {
+
     val isUnlocked: Flow<Boolean>
+
+    fun observeHasVault(): Flow<Boolean>
 
     fun observeEntries(): Flow<List<VaultEntry>>
 
@@ -30,7 +33,7 @@ interface VaultRepository {
 
     suspend fun deleteEntry(id: String)
 
-    suspend fun validateSyncCode(code: String): Boolean
+    suspend fun restoreFromSyncCode(code: String): Boolean
 }
 
 class VaultLockedException : IllegalStateException("Vault is locked")

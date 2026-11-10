@@ -128,7 +128,8 @@ class RestoreVaultViewModel @Inject constructor(private val repository: VaultRep
         if (state.isLoading) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val isValid = repository.validateSyncCode(state.code)
+            // Downloads the encrypted vault from the server and saves it to the local database
+            val isValid = repository.restoreFromSyncCode(state.code)
             _uiState.update { it.copy(isLoading = false, isError = !isValid, isVerified = isValid) }
         }
     }
