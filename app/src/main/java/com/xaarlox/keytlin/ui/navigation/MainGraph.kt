@@ -1,22 +1,35 @@
 package com.xaarlox.keytlin.ui.navigation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.xaarlox.keytlin.ui.screens.generator.GeneratorScreen
+import com.xaarlox.keytlin.ui.screens.generator.GeneratorViewModel
 import com.xaarlox.keytlin.ui.screens.settings.SettingsScreen
+import com.xaarlox.keytlin.ui.screens.settings.SettingsViewModel
 import com.xaarlox.keytlin.ui.screens.vault.EntryDetailsScreen
+import com.xaarlox.keytlin.ui.screens.vault.EntryDetailsViewModel
+import com.xaarlox.keytlin.ui.screens.vault.VaultListViewModel
 import com.xaarlox.keytlin.ui.screens.vault.VaultScreen
-import com.xaarlox.keytlin.ui.screens.vault.dummyVaultData
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
     composable(Route.Vault.path) {
+        val viewModel: VaultListViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
         VaultScreen(
-            onItemClick = { id ->
-                navController.navigate(Route.EntryDetails.create(id))
-            },
+            uiState = uiState,
+            onQueryChange = viewModel::onQueryChange,
+            onSearchToggle = viewModel::onSearchToggle,
+            onSortToggle = viewModel::onSortToggle,
+            onItemClick = { id -> navController.navigate(Route.EntryDetails.create(id)) },
             onAddClick = { navController.navigate(Route.NewEntry.path) },
             onNavigateToGenerator = { navController.navigateToTab(Route.Generator) },
             onNavigateToSettings = { navController.navigateToTab(Route.Settings) }
@@ -24,19 +37,32 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
     }
 
     composable(Route.Generator.path) {
+        val viewModel: GeneratorViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
         GeneratorScreen(
+            uiState = uiState,
+            onLengthChange = viewModel::onLengthChange,
+            onUppercaseChange = viewModel::onUppercaseChange,
+            onLowercaseChange = viewModel::onLowercaseChange,
+            onDigitsChange = viewModel::onDigitsChange,
+            onSymbolsChange = viewModel::onSymbolsChange,
+            onRegenerateClick = viewModel::regenerate,
             onNavigateToVault = { navController.navigateToTab(Route.Vault) },
             onNavigateToSettings = { navController.navigateToTab(Route.Settings) }
         )
     }
 
     composable(Route.Settings.path) {
+        val viewModel: SettingsViewModel = hiltViewModel()
+
         SettingsScreen(
             onNavigateToVault = { navController.navigateToTab(Route.Vault) },
             onNavigateToGenerator = { navController.navigateToTab(Route.Generator) },
             onChangePasswordClick = { /* TODO */ },
             onAutoLockClick = { /* TODO */ },
             onLockVaultClick = {
+                viewModel.lockVault()
                 navController.navigate(Route.VaultLocked.path) {
                     popUpTo(0) { inclusive = true }
                 }
@@ -49,12 +75,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
     }
 
     composable(Route.NewEntry.path) {
-        EntryDetailsScreen(
-            entry = null,
-            onBackClick = { navController.popBackStack() },
-            onSaveClick = { /* TODO: save */ navController.popBackStack() },
-            onDeleteClick = {}
-        )
+        EntryDetailsDestination(navController)
     }
 
     composable(
@@ -62,15 +83,32 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
         arguments = listOf(
             navArgument(Route.ARG_ENTRY_ID) { type = NavType.StringType }
         )
-    ) { backStackEntry ->
-        val entryId = backStackEntry.arguments?.getString(Route.ARG_ENTRY_ID)
-        val entry = dummyVaultData.find { it.id == entryId } // TODO: repository
-
-        EntryDetailsScreen(
-            entry = entry,
-            onBackClick = { navController.popBackStack() },
-            onSaveClick = { /* TODO: update */ navController.popBackStack() },
-            onDeleteClick = { /* TODO: delete */ navController.popBackStack() }
-        )
+    ) {
+        // entryId is passed to the ViewModel via SavedStateHandle
+        EntryDetailsDestination(navController)
     }
+}
+
+@Composable
+private fun EntryDetailsDestination(navController: NavController) {
+    val viewModel: EntryDetailsViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.isFinished) {
+        if (uiState.isFinished) navController.popBackStack()
+    }
+
+    EntryDetailsScreen(
+        uiState = uiState,
+        onTitleChange = viewModel::onTitleChange,
+        onUsernameChange = viewModel::onUsernameChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onUrlChange = viewModel::onUrlChange,
+        onNotesChange = viewModel::onNotesChange,
+        onGeneratePasswordClick = viewModel::generatePassword,
+        onBackClick = { navController.popBackStack() },
+        onSaveClick = viewModel::save,
+        onDeleteClick = viewModel::delete,
+        onErrorShown = viewModel::onErrorShown
+    )
 }

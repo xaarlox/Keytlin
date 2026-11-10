@@ -18,7 +18,7 @@ fun CreateVaultScreen(
     onMasterPasswordChange: (String) -> Unit,
     confirmPassword: String,
     onConfirmPasswordChange: (String) -> Unit,
-    isError: Boolean,
+    errorText: String?,
     onCreateClick: () -> Unit
 ) {
     ScreenColumn {
@@ -38,7 +38,7 @@ fun CreateVaultScreen(
             value = masterPassword,
             onValueChange = onMasterPasswordChange,
             label = "Master Password",
-            isError = isError
+            isError = errorText != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -47,8 +47,8 @@ fun CreateVaultScreen(
             value = confirmPassword,
             onValueChange = onConfirmPasswordChange,
             label = "Confirm Password",
-            isError = isError,
-            errorText = if (masterPassword.isEmpty()) "Password cannot be empty" else "Passwords do not match"
+            isError = errorText != null,
+            errorText = errorText
         )
 
         Spacer(modifier = Modifier.height(48.dp))

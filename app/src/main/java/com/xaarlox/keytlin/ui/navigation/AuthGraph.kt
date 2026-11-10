@@ -1,23 +1,21 @@
 package com.xaarlox.keytlin.ui.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.xaarlox.keytlin.data.VaultRepository
 import com.xaarlox.keytlin.ui.screens.auth.CreateVaultScreen
+import com.xaarlox.keytlin.ui.screens.auth.CreateVaultViewModel
 import com.xaarlox.keytlin.ui.screens.auth.EnterSyncCodeScreen
+import com.xaarlox.keytlin.ui.screens.auth.RestoreVaultViewModel
+import com.xaarlox.keytlin.ui.screens.auth.UnlockViewModel
 import com.xaarlox.keytlin.ui.screens.auth.VaultLockedScreen
 import com.xaarlox.keytlin.ui.screens.welcome.WelcomeChoiceScreen
 
-fun NavGraphBuilder.authGraph(
-    navController: NavController,
-    vaultRepository: VaultRepository
-) {
+fun NavGraphBuilder.authGraph(navController: NavController) {
     composable(Route.Welcome.path) {
         WelcomeChoiceScreen(
             onCreateVaultClick = { navController.navigate(Route.CreateVault.path) },
@@ -26,79 +24,66 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Route.EnterSyncCode.path) {
-        var syncCode by rememberSaveable { mutableStateOf("") }
-        var isCodeError by rememberSaveable { mutableStateOf(false) }
+        val viewModel: RestoreVaultViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        LaunchedEffect(uiState.isVerified) {
+            if (uiState.isVerified) {
+                navController.navigate(Route.VaultLocked.path) {
+                    popUpTo(Route.Welcome.path) { inclusive = true }
+                }
+            }
+        }
 
         EnterSyncCodeScreen(
-            code = syncCode,
-            onCodeChange = {
-                syncCode = it
-                isCodeError = false
-            },
-            isError = isCodeError,
-            onContinueClick = {
-                val isValid = vaultRepository.validateSyncCode(syncCode)
-                isCodeError = !isValid
-                if (isValid) {
-                    navController.navigate(Route.VaultLocked.path) {
-                        popUpTo(Route.Welcome.path) { inclusive = true }
-                    }
-                }
-            },
+            code = uiState.code,
+            onCodeChange = viewModel::onCodeChange,
+            isError = uiState.isError,
+            onContinueClick = viewModel::verifyCode,
             onScanQrClick = { /* TODO */ },
             onBackClick = { navController.popBackStack() }
         )
     }
 
     composable(Route.CreateVault.path) {
-        var masterPassword by remember { mutableStateOf("") }
-        var confirmPassword by remember { mutableStateOf("") }
-        var isPasswordError by remember { mutableStateOf(false) }
+        val viewModel: CreateVaultViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        CreateVaultScreen(
-            masterPassword = masterPassword,
-            onMasterPasswordChange = {
-                masterPassword = it
-                isPasswordError = false
-            },
-            confirmPassword = confirmPassword,
-            onConfirmPasswordChange = {
-                confirmPassword = it
-                isPasswordError = false
-            },
-            isError = isPasswordError,
-            onCreateClick = {
-                if (masterPassword.isEmpty() || masterPassword != confirmPassword) {
-                    isPasswordError = true
-                } else {
-                    navController.navigate(Route.Vault.path) {
-                        popUpTo(Route.Welcome.path) { inclusive = true }
-                    }
+        LaunchedEffect(uiState.isCreated) {
+            if (uiState.isCreated) {
+                navController.navigate(Route.Vault.path) {
+                    popUpTo(Route.Welcome.path) { inclusive = true }
                 }
             }
+        }
+
+        CreateVaultScreen(
+            masterPassword = uiState.masterPassword,
+            onMasterPasswordChange = viewModel::onMasterPasswordChange,
+            confirmPassword = uiState.confirmPassword,
+            onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+            errorText = uiState.error?.message,
+            onCreateClick = viewModel::createVault
         )
     }
 
     composable(Route.VaultLocked.path) {
-        var password by remember { mutableStateOf("") }
-        var isPasswordError by remember { mutableStateOf(false) }
+        val viewModel: UnlockViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        VaultLockedScreen(
-            password = password,
-            onPasswordChange = {
-                password = it
-                isPasswordError = false
-            },
-            isError = isPasswordError,
-            onUnlockClick = {
-                if (vaultRepository.validateMasterPassword(password)) {
-                    navController.navigate(Route.Vault.path) {
-                        popUpTo(Route.VaultLocked.path) { inclusive = true }
-                    }
-                } else {
-                    isPasswordError = true
+        LaunchedEffect(uiState.isUnlocked) {
+            if (uiState.isUnlocked) {
+                navController.navigate(Route.Vault.path) {
+                    popUpTo(Route.VaultLocked.path) { inclusive = true }
                 }
             }
+        }
+
+        VaultLockedScreen(
+            password = uiState.password,
+            onPasswordChange = viewModel::onPasswordChange,
+            isError = uiState.isError,
+            onUnlockClick = viewModel::unlock
         )
     }
 }

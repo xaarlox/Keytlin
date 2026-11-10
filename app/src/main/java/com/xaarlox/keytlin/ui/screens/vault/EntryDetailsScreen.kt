@@ -1,5 +1,6 @@
 package com.xaarlox.keytlin.ui.screens.vault
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,61 +14,61 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.xaarlox.keytlin.domain.models.GeneratorOptions
-import com.xaarlox.keytlin.domain.service.PasswordStrengthEvaluator
-import com.xaarlox.keytlin.domain.models.VaultEntry
-import com.xaarlox.keytlin.domain.service.PasswordGenerator
 import com.xaarlox.keytlin.ui.components.common.label
 import com.xaarlox.keytlin.ui.components.common.uiColor
 import com.xaarlox.keytlin.ui.components.input.AppTextField
 import com.xaarlox.keytlin.ui.components.input.PasswordTextField
-import java.util.UUID
 import kotlin.text.ifEmpty
-
-private const val GENERATED_PASSWORD_LENGTH = 16
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryDetailsScreen(
-    entry: VaultEntry? = null,
+    uiState: EntryDetailsUiState,
+    onTitleChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onUrlChange: (String) -> Unit,
+    onNotesChange: (String) -> Unit,
+    onGeneratePasswordClick: () -> Unit,
     onBackClick: () -> Unit,
-    onSaveClick: (VaultEntry) -> Unit,
-    onDeleteClick: () -> Unit
+    onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onErrorShown: () -> Unit
 ) {
-    var title by rememberSaveable { mutableStateOf(entry?.title ?: "") }
-    var username by rememberSaveable { mutableStateOf(entry?.username ?: "") }
-    var url by rememberSaveable { mutableStateOf(entry?.url ?: "") }
-    var notes by rememberSaveable { mutableStateOf(entry?.notes ?: "") }
-    var password by remember { mutableStateOf(entry?.password ?: "") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onErrorShown()
+        }
+    }
 
-    val generator = remember { PasswordGenerator() }
-    val evaluator = remember { PasswordStrengthEvaluator() }
-    val analysis = remember(password) { evaluator.analyze(password) }
-
-    val isEditing = entry != null
-    val screenTitle = if (isEditing) title.ifEmpty { "Unnamed Entry" } else "New Entry"
+    val screenTitle =
+        if (uiState.isEditing) uiState.title.ifEmpty { "Unnamed Entry" } else "New Entry"
+    val analysis = uiState.analysis
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(text = screenTitle) },
@@ -80,18 +81,10 @@ fun EntryDetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        onSaveClick(
-                            VaultEntry(
-                                id = entry?.id ?: UUID.randomUUID().toString(),
-                                title = title,
-                                username = username,
-                                password = password,
-                                url = url,
-                                notes = notes
-                            )
-                        )
-                    }) {
+                    IconButton(
+                        onClick = onSaveClick,
+                        enabled = !uiState.isLoading && !uiState.isSaving
+                    ) {
                         Icon(
                             imageVector = Icons.Rounded.Check,
                             contentDescription = "Save",
@@ -106,6 +99,16 @@ fun EntryDetailsScreen(
             )
         }
     ) { innerPadding ->
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator() }
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -116,30 +119,30 @@ fun EntryDetailsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AppTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = "Website/App Name"
+                value = uiState.title,
+                onValueChange = onTitleChange,
+                label = "Website/App Name",
+                isError = uiState.titleError != null,
+                errorText = uiState.titleError
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = username,
-                onValueChange = { username = it },
+                value = uiState.username,
+                onValueChange = onUsernameChange,
                 label = "Username/Email"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             PasswordTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = onPasswordChange,
                 label = "Password",
                 trailingActions = { reveal ->
                     IconButton(onClick = {
-                        password = generator.generate(
-                            GeneratorOptions(length = GENERATED_PASSWORD_LENGTH)
-                        )
+                        onGeneratePasswordClick()
                         reveal()
                     }) {
                         Icon(
@@ -150,7 +153,7 @@ fun EntryDetailsScreen(
                 }
             )
 
-            if (password.isNotEmpty()) {
+            if (analysis != null) {
                 PasswordStrengthIndicator(
                     progress = analysis.progress,
                     label = "${analysis.strength.label} password",
@@ -161,8 +164,8 @@ fun EntryDetailsScreen(
                 if (analysis.isBreachedLocally) {
                     Spacer(modifier = Modifier.height(16.dp))
                     BreachedPasswordCard(
-                        onSaveAnyway = { /* TODO: Save anyway */ },
-                        onChangePassword = { /* TODO: Change password */ }
+                        onSaveAnyway = onSaveClick,
+                        onChangePassword = onGeneratePasswordClick
                     )
                 }
             }
@@ -170,8 +173,8 @@ fun EntryDetailsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = url,
-                onValueChange = { url = it },
+                value = uiState.url,
+                onValueChange = onUrlChange,
                 label = "URL",
                 keyboardType = KeyboardType.Uri
             )
@@ -179,8 +182,8 @@ fun EntryDetailsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = notes,
-                onValueChange = { notes = it },
+                value = uiState.notes,
+                onValueChange = onNotesChange,
                 label = "Notes",
                 singleLine = false,
                 modifier = Modifier.height(120.dp)
@@ -188,9 +191,10 @@ fun EntryDetailsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (isEditing) {
+            if (uiState.isEditing) {
                 TextButton(
                     onClick = onDeleteClick,
+                    enabled = !uiState.isSaving,
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
