@@ -12,6 +12,8 @@ data class VaultEntry(
     val notes: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val modifiedAt: Long = System.currentTimeMillis(),
+    /** When the password itself was last changed — compared against breach dates on the site */
+    val passwordChangedAt: Long = createdAt,
     val deletedAt: Long? = null
 ) {
     val isDeleted: Boolean get() = deletedAt != null
@@ -23,6 +25,7 @@ data class VaultEntry(
         username = "",
         createdAt = createdAt,
         modifiedAt = now,
+        passwordChangedAt = now,
         deletedAt = now
     )
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BreachedPasswordCard(
+    occurrences: Long?,
     onSaveAnyway: () -> Unit,
     onChangePassword: () -> Unit,
     modifier: Modifier = Modifier
@@ -52,7 +53,12 @@ fun BreachedPasswordCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "This password was found in public data breaches.",
+                text = if (occurrences != null) {
+                    "This password has appeared ${"%,d".format(occurrences)} times in public data breaches. " +
+                            "Attackers try such passwords first."
+                } else {
+                    "This is one of the most common passwords and is found in public data breaches."
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
@@ -84,4 +90,30 @@ fun BreachedPasswordCard(
             }
         }
     }
+}
+
+/** Online check status line under the strength indicator */
+@Composable
+fun PasswordBreachStatusText(
+    status: PasswordBreachStatus,
+    modifier: Modifier = Modifier
+) {
+    val (text, color) = when (status) {
+        PasswordBreachStatus.Checking ->
+            "Checking known data breaches…" to MaterialTheme.colorScheme.onSurfaceVariant
+
+        PasswordBreachStatus.Safe ->
+            "Not found in known data breaches" to MaterialTheme.colorScheme.primary
+
+        PasswordBreachStatus.Unavailable ->
+            "Couldn't check data breaches (offline)" to MaterialTheme.colorScheme.onSurfaceVariant
+
+        PasswordBreachStatus.Idle, is PasswordBreachStatus.Breached -> return
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = color,
+        modifier = modifier
+    )
 }

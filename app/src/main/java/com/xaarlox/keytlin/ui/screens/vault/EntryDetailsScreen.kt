@@ -161,9 +161,16 @@ fun EntryDetailsScreen(
                     modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp)
                 )
 
-                if (analysis.isBreachedLocally) {
+                PasswordBreachStatusText(
+                    status = uiState.passwordBreach,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp, end = 4.dp)
+                )
+
+                val breach = uiState.passwordBreach
+                if (breach is PasswordBreachStatus.Breached) {
                     Spacer(modifier = Modifier.height(16.dp))
                     BreachedPasswordCard(
+                        occurrences = breach.occurrences,
                         onSaveAnyway = onSaveClick,
                         onChangePassword = onGeneratePasswordClick
                     )
@@ -178,6 +185,14 @@ fun EntryDetailsScreen(
                 label = "URL",
                 keyboardType = KeyboardType.Uri
             )
+
+            uiState.siteBreaches.forEach { warning ->
+                Spacer(modifier = Modifier.height(12.dp))
+                SiteBreachCard(
+                    warning = warning,
+                    onChangePassword = onGeneratePasswordClick
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
