@@ -3,6 +3,7 @@ name = "server"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi[standard]>=0.163.1",
     "psycopg[binary]>=3.3.9",
     "pydantic-settings>=2.16.3",
