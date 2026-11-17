@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keytlin
+      POSTGRES_USER: keytlin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keytlin -d keytlin" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # The database port is not published: only the api container connects to it
+
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      KEYTLIN_DATABASE_URL: postgresql+psycopg://keytlin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file}@db:5432/keytlin
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
